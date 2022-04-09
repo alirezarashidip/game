@@ -1,0 +1,174 @@
+from cProfile import label
+from fileinput import filename
+import random
+import pygame
+from tkinter import *
+list_names = ["glider","gosper-glider-gun","pulsar"]
+
+def get_neighbors(x,y , row, column , file):
+    alive_counter = 0
+    for ii in range(-1,2):
+        for jj in range(-1,2):
+            if not ((x==0 and ii==-1) or (x==row and ii==1) or (y==0 and jj==-1) or
+             (y==column and jj==1) or (ii==0 and jj==0) or (x+ii==row) or (y+jj==column)): 
+
+                if (file[x+ii][y+jj]=='X'): 
+                    alive_counter += 1
+
+
+    if file[x][y] == '.' : 
+        if alive_counter == 3 :
+            return 'X'
+
+    elif file[x][y] == 'X':
+        if alive_counter == 2 or alive_counter == 3:         
+            return 'X'
+
+    return '.'    
+
+
+def read_file(filename):
+    with open ('./sample_patterns/' + filename + '.txt', mode='r') as File:
+        return File.readlines()
+
+
+def write_file(filename , content):
+    with open ('./sample_patterns/' + filename + '.txt', mode='w') as File :
+        File.write(content)
+
+
+def create_random(row,column):
+    items = ['.','X']
+    random_pattern = []
+
+    for i in range(row):
+        string_row = ""
+        for j in range(column):
+            temp = random.choice(items)
+            string_row += temp
+        random_pattern.append(string_row + '\n')
+    return ''.join(random_pattern)
+
+
+def main_function(filename):
+
+    file = read_file(filename)
+    row = len(file)
+    column = len(file[0]) - 1
+
+
+    s = 7
+    size = (width,height) = s*row , s*column
+    pygame.init()
+    window = pygame.display.set_mode(size)
+
+
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+        window.fill((100,100,100))
+
+        file = read_file(filename)
+
+        content = []
+        for i in range(row):
+            row_list = list(file[i]) 
+          
+
+            for j in range(column) :
+                x = i * s
+                y = j * s
+                if (file[i][j]=='X'):
+                    pygame.draw.rect(window , (255,255,255) , (x,y,s,s))
+
+                elif (file[i][j]=='.'):
+                    pygame.draw.rect(window , (0,0,0) , (x,y,s,s))
+
+                pygame.draw.line(window , (20,20,20),(x,y),(x,height))
+                pygame.draw.line(window , (20,20,20),(x,y),(width , y))
+
+                result = get_neighbors(i,j, row , column , file) 
+
+                row_list[j] = result 
+        # convert list => string        
+            row_list = ''.join(row_list) 
+            content.append(row_list)
+
+
+        content = ''.join(content)
+
+        write_file(filename , content)
+
+        pygame.display.flip()
+
+
+def CreateRandomButtonClicked():
+    row = int(width.get())
+    column = int(height.get())
+    content = create_random(row,column)
+    filename = "random_pattern"
+    write_file(filename , content)
+    main_function(filename)
+
+
+def Button2Clicked():
+    filename= list_names[0]
+    main_function(filename)
+
+
+def Button3Clicked():
+    filename= list_names[1]
+    main_function(filename)
+
+
+def Button4Clicked():
+    filename= list_names[2]
+    main_function(filename)
+
+window = Tk()
+window.minsize(width=300 , height= 150)
+window.title("Conway's Game of Life")
+window.config(padx=20,pady=20)
+
+label1 = Label(text="Hello! Welcome to Conway's Game of Life. ",font=(30) , padx=5 , pady=5)
+label1.grid(row=0 , column =0 , columnspan=2)
+
+label2 = Label(text="Which pattern do you want to play? ", font=("Arial",20), padx=5 , pady=5)
+label2.grid(row=1 , column=0 , columnspan=2)
+
+label3 = Label(text="A randomly pattern with customized width and height: ",font=(30), padx=5 , pady=5)
+label3.grid(row=2 , column=0 , columnspan=2)
+
+label4 = Label(text="Width: " , padx=5 , pady=5)
+label4.grid(row=3 , column=0)
+
+width = Entry(width=25)
+width.grid(row=3 , column=1)
+
+label5 = Label(text="Height: ", padx=5 , pady=5)
+label5.grid(row=4 , column=0)
+
+height = Entry(width=25)
+height.grid(row=4 , column=1)
+
+button1 = Button(text="Create a random pattern",width=20, padx=5 , pady=5 , background="#e6fff7" , command=CreateRandomButtonClicked)
+button1.grid(row=5,column=1)
+
+label5 = Label(text="Or...Use one of our default patterns!",font=(30) , padx=5 , pady=5)
+label5.grid(row=6 , column = 0 , columnspan=2)
+
+button2 = Button(text=list_names[0] ,width=20, padx=5 , pady=5 , background="#ccffee" , command=Button2Clicked)
+button2.grid(row=7,column=1)
+
+button3 = Button(text=list_names[1] ,width=20, padx=5 , pady=5 , background="#b3ffe6" , command=Button3Clicked)
+button3.grid(row=8,column=1)
+
+button4 = Button(text=list_names[2] ,width=20, padx=5 , pady=5 , background="#80ffd4" , command=Button4Clicked)
+button4.grid(row=9,column=1)
+
+
+
+window.mainloop()
+#end
